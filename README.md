@@ -1,102 +1,210 @@
-# Building an API using a Node.js and Express Middleware
+# Building RESTful APIs with Express
 
-In this challenge, you build an API and write custom middleware that satisfies the requirements listed under the `Minimum Viable Product` section.
+## Topics
 
-## Instructions
+- Express Routing
+- Reading Request data from body and URL parameters
+- Sub-routes
+- API design and development.
 
-**Read these instructions carefully. Understand exactly what is expected before starting.**
+## Description
 
-You are allowed, and **encouraged**, to collaborate with other peers. Please follow the twenty-minute rule, before seeking support from your TL and Instructor.
+Use `Node.js` and `Express` to build an API that performs _CRUD_ operations on `blog posts`.
 
-## Project Set Up
+### Project Setup
 
-- [ x] Create a forked copy of this project.
-- [ x] Add your `Team Lead` as collaborator on Github.
-- [ x] Clone your OWN version of the repository.
-- [ x] Create a new branch: git checkout -b `<firstName-lastName>`.
-- [ x] Implement the project on your newly created `<firstName-lastName>` branch, committing changes regularly.
-- [ x] Push commits: git push origin `<firstName-lastName>`.
-
-Follow these steps for completing your project.
-
-- [ x] Submit a Pull-Request to merge <firstName-lastName> Branch into master (student's Repository). **Please don't merge your own pull request**
-- [ x] Add your `Team Lead` as a reviewer on the pull-request
-- [ x] Your `Team Lead` will count the project as complete by merging the branch back into master.
-- [ x] Do your magic!
-
-## Minimum Viable Product
-
-1. Write and implement four custom `middleware` functions, detailed below.
-1. Build an API to let clients perform CRUD operations on `users`.
-1. Add endpoints to retrieve the list of `posts` for a `user` and to store a new `post` for a `user`.
-
-#### Custom Middleware Requirements
-
-<!-- - `logger()`
-
-  - `logger` logs to the console the following information about each request: request method, request url, and a timestamp
-  - this middleware runs on every request made to the API -->
-
-<!-- - `validateUserId()`
-
-  - `validateUserId` validates the user id on every request that expects a user id parameter
-  - if the `id` parameter is valid, store that user object as `req.user`
-  - if the `id` parameter does not match any user id in the database, cancel the request and respond with status `400` and `{ message: "invalid user id" }` -->
-
-<!-- - `validateUser()`
-
-  - `validateUser` validates the `body` on a request to create a new user
-  - if the request `body` is missing, cancel the request and respond with status `400` and `{ message: "missing user data" }`
-  - if the request `body` is missing the required `name` field, cancel the request and respond with status `400` and `{ message: "missing required name field" }` -->
-
-<!-- - `validatePost()`
-  - `validatePost` validates the `body` on a request to create a new post
-  - if the request `body` is missing, cancel the request and respond with status `400` and `{ message: "missing post data" }`
-  - if the request `body` is missing the required `text` field, cancel the request and respond w{ message: "missing required text field" }ith status `400` and `` -->
+- import this repository into your account
+- clone **your copy** of this repository.
+- **CD into the folder** where you cloned the repository.
+- Type `npm install` to download all dependencies.
+- To start the server, type `npm run server` from the root folder (where the _package.json_ file is). The server is configured to restart automatically as you make changes.
 
 ### Database Persistence Helpers
 
-There are two helper files that you can use to manage the persistence of _users_ and _posts_ data. These files are `users/userDb.js` and `posts/postDb.js`. Both files publish the following api:
+The `data` folder contains a database populated with test `posts`.
 
-- `get()`: calling find returns a promise that resolves to an array of all the `resources` contained in the database.
-- `getById()`: takes an `id` as the argument and returns a promise that resolves to the `resource` with that id if found.
-- `insert()`: calling insert passing it a `resource` object will add it to the database and return the new `resource`.
-- `update()`: accepts two arguments, the first is the `id` of the `resource` to update and the second is an object with the `changes` to apply. It returns the count of updated records. If the count is 1 it means the record was updated correctly.
-- `remove()`: the remove method accepts an `id` as it's first parameter and, upon successfully deleting the `resource` from the database, returns the number of records deleted.
+Database access will be done using the `db.js` file included inside the `data` folder.
 
-The `userDb.js` helper includes an extra method called `getUserPosts()` that when passed a user's `id`, returns a list of all the `posts` for the `user`.
+The `db.js` publishes the following methods.
 
-**All helper methods return a promise.**
+- `find()`: calling find returns a promise that resolves to an array of all the `posts` contained in the database.
+- `findById()`: this method expects an `id` as it's only parameter and returns a promise that resolves to the post corresponding to the `id` provided or an empty array if no post with that `id` is found.
+- `insert()`: calling insert passing it a `post` object will add it to the database and return a promise that resolves to an object with the `id` of the inserted post. The object looks like this: `{ id: 123 }`.
+- `update()`: accepts two arguments, the first is the `id` of the post to update and the second is an object with the `changes` to apply. It returns a promise that resolves to the count of updated records. If the count is 1 it means the record was updated correctly.
+- `remove()`: the remove method accepts an `id` as its first parameter and upon successfully deleting the post from the database it returns a promise that resolves to the number of records deleted.
+- `findPostComments()`: the findPostComments accepts a `postId` as its first parameter and returns a promise that resolves to an array of all comments on the post associated with the post id.
+- `findCommentById()`: accepts an `id` and returns a promise that resolves to the comment associated with that id.
+- `insertComment()`: calling insertComment while passing it a `comment` object will add it to the database and return a promise that resolves to an object with the `id` of the inserted comment. The object looks like this: `{ id: 123 }`. This method will throw an error if the `post_id` field in the `comment` object does not match a valid post id in the database.
 
-#### Database Schemas
+Now that we have a way to add, update, remove and retrieve data from the provided database, it is time to work on the API.
 
-The _Database Schemas_ for the `users` and `posts` resources are:
+### Blog Post Schema
 
-##### Users
+A Blog Post in the database has the following structure:
 
-| field | data type        | metadata                                            |
-| ----- | ---------------- | --------------------------------------------------- |
-| id    | unsigned integer | primary key, auto-increments, generated by database |
-| name  | string           | required, unique                                    |
+```js
+{
+  title: "The post title", // String, required
+  contents: "The post contents", // String, required
+  created_at: Mon Aug 14 2017 12:50:16 GMT-0700 (PDT) // Date, defaults to current date
+  updated_at: Mon Aug 14 2017 12:50:16 GMT-0700 (PDT) // Date, defaults to current date
+}
+```
 
-##### Posts
+### Comment Schema
 
-| field   | data type        | metadata                                            |
-| ------- | ---------------- | --------------------------------------------------- |
-| id      | unsigned integer | primary key, auto-increments, generated by database |
-| text    | text             | required                                            |
-| user_id | unsigned integer | required, must be the `id` of an existing `user`    |
+A Comment in the database has the following structure:
 
-We have provided test data for the resources.
+```js
+{
+  text: "The text of the comment", // String, required
+  post_id: "The id of the associated post", // Integer, required, must match the id of a post entry in the database
+  created_at: Mon Aug 14 2017 12:50:16 GMT-0700 (PDT) // Date, defaults to current date
+  updated_at: Mon Aug 14 2017 12:50:16 GMT-0700 (PDT) // Date, defaults to current date
+}
+```
 
-## Stretch Goals
+### Minimum Viable Product
 
-- Add the Post Router
+- Add the code necessary to implement the endpoints listed below.
+- Separate the endpoints that begin with `/api/posts` into a separate `Express Router`.
 
-  - Implement all endpoints and middleware within `posts/postRouter.js`
+### Endpoints
 
-- Create a React App
-  - Use `create-react-app` to create an application inside the root folder, name it `client`.
-  - From the React application connect to the `/api/users` endpoint in the API and show the list of users.
-  - Add functionality to show the details of a user, including their posts, when clicking a user name in the list. Use React Router to navigate to a `/users/:id` route to show the user details.
-  - Add styling!
+Configure the API to handle to the following routes:
+
+| Method | Endpoint                | Description                                                                                                                                                                 |
+| ------ | ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| POST   | /api/posts              | Creates a post using the information sent inside the `request body`.                                                                                                        |
+| POST   | /api/posts/:id/comments | Creates a comment for the post with the specified id using information sent inside of the `request body`.                                                                   |
+| GET    | /api/posts              | Returns an array of all the post objects contained in the database.                                                                                                         |
+| GET    | /api/posts/:id          | Returns the post object with the specified id.                                                                                                                              |
+| GET    | /api/posts/:id/comments | Returns an array of all the comment objects associated with the post with the specified id.                                                                                 |
+| DELETE | /api/posts/:id          | Removes the post with the specified id and returns the **deleted post object**. You may need to make additional calls to the database in order to satisfy this requirement. |
+| PUT    | /api/posts/:id          | Updates the post with the specified `id` using data from the `request body`. Returns the modified document, **NOT the original**.                                           |
+
+#### Endpoint Specifications
+
+When the client makes a `POST` request to `/api/posts`:
+
+<!-- - If the request body is missing the `title` or `contents` property:
+
+  - cancel the request.
+  - respond with HTTP status code `400` (Bad Request).
+  - return the following JSON response: `{ errorMessage: "Please provide title and contents for the post." }`. -->
+
+<!-- - If the information about the _post_ is valid:
+
+  - save the new _post_ the the database.
+  - return HTTP status code `201` (Created).
+  - return the newly created _post_. -->
+
+<!-- - If there's an error while saving the _post_:
+  - cancel the request.
+  - respond with HTTP status code `500` (Server Error).
+  - return the following JSON object: `{ error: "There was an error while saving the post to the database" }`. -->
+
+When the client makes a `POST` request to `/api/posts/:id/comments`:
+
+<!-- - If the _post_ with the specified `id` is not found:
+
+  - return HTTP status code `404` (Not Found).
+  - return the following JSON object: `{ message: "The post with the specified ID does not exist." }`. -->
+<!-- 
+- If the request body is missing the `text` property:
+
+  - cancel the request.
+  - respond with HTTP status code `400` (Bad Request).
+  - return the following JSON response: `{ errorMessage: "Please provide text for the comment." }`. -->
+
+<!-- - If the information about the _comment_ is valid:
+
+  - save the new _comment_ the the database.
+  - return HTTP status code `201` (Created).
+  - return the newly created _comment_. -->
+
+<!-- - If there's an error while saving the _comment_:
+  - cancel the request.
+  - respond with HTTP status code `500` (Server Error).
+  - return the following JSON object: `{ error: "There was an error while saving the comment to the database" }`. -->
+
+<!-- When the client makes a `GET` request to `/api/posts`:
+
+- If there's an error in retrieving the _posts_ from the database:
+  - cancel the request.
+  - respond with HTTP status code `500`.
+  - return the following JSON object: `{ error: "The posts information could not be retrieved." }`. -->
+
+When the client makes a `GET` request to `/api/posts/:id`:
+
+<!-- - If the _post_ with the specified `id` is not found:
+
+  - return HTTP status code `404` (Not Found).
+  - return the following JSON object: `{ message: "The post with the specified ID does not exist." }`. -->
+
+<!-- - If there's an error in retrieving the _post_ from the database:
+  - cancel the request.
+  - respond with HTTP status code `500`.
+  - return the following JSON object: `{ error: "The post information could not be retrieved." }`. -->
+
+When the client makes a `GET` request to `/api/posts/:id/comments`:
+
+<!-- - If the _post_ with the specified `id` is not found:
+
+  - return HTTP status code `404` (Not Found).
+  - return the following JSON object: `{ message: "The post with the specified ID does not exist." }`. -->
+<!-- 
+- If there's an error in retrieving the _comments_ from the database:
+  - cancel the request.
+  - respond with HTTP status code `500`.
+  - return the following JSON object: `{ error: "The comments information could not be retrieved." }`. -->
+
+When the client makes a `DELETE` request to `/api/posts/:id`:
+
+<!-- - If the _post_ with the specified `id` is not found:
+
+  - return HTTP status code `404` (Not Found).
+  - return the following JSON object: `{ message: "The post with the specified ID does not exist." }`. -->
+
+<!-- - If there's an error in removing the _post_ from the database:
+  - cancel the request.
+  - respond with HTTP status code `500`.
+  - return the following JSON object: `{ error: "The post could not be removed" }`. -->
+
+When the client makes a `PUT` request to `/api/posts/:id`:
+
+<!-- - If the _post_ with the specified `id` is not found:
+
+  - return HTTP status code `404` (Not Found).
+  - return the following JSON object: `{ message: "The post with the specified ID does not exist." }`. -->
+
+<!-- - If the request body is missing the `title` or `contents` property:
+
+  - cancel the request.
+  - respond with HTTP status code `400` (Bad Request).
+  - return the following JSON response: `{ errorMessage: "Please provide title and contents for the post." }`. -->
+
+<!-- - If there's an error when updating the _post_:
+
+  - cancel the request.
+  - respond with HTTP status code `500`.
+  - return the following JSON object: `{ error: "The post information could not be modified." }`. -->
+
+<!-- - If the post is found and the new information is valid:
+
+  - update the post document in the database using the new information sent in the `request body`.
+  - return HTTP status code `200` (OK).
+  - return the newly updated _post_. -->
+
+## Stretch Problems
+
+To work on the stretch problems you'll need to enable the `cors` middleware. Follow these steps:
+
+- add the `cors` npm module: `npm i cors`.
+- add `server.use(cors())` after `server.use(express.json())`.
+
+Create a new React application and connect it to your server:
+
+- Use `create-react-app` to create an application inside the root folder, name it `client`.
+- From the React application connect to the `/api/posts` endpoint in the API and show the list of posts.
+- Style the list of posts however you see fit.

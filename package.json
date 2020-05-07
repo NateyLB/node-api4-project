@@ -1,35 +1,22 @@
 {
-  "name": "node-api3-project",
-  "version": "1.0.0",
-  "description": "Node API 3 Project",
+  "name": "node-api2-project",
+  "version": "0.0.1",
+  "description": "Project for Node API 2 Module",
+  "private": true,
   "main": "index.js",
   "scripts": {
-    "server": "nodemon index.js",
-    "start": "node index.js"
+    "start": "node index.js",
+    "server": "nodemon index.js"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/LambdaSchool/node-api3-project.git"
-  },
-  "keywords": [
-    "node",
-    "express",
-    "blog",
-    "api",
-    "middleware"
-  ],
-  "author": "Lambda School",
-  "bugs": {
-    "url": "https://github.com/LambdaSchool/node-api3-project/issues"
-  },
-  "homepage": "https://github.com/LambdaSchool/node-api3-project#readme",
   "dependencies": {
+    "cors": "^2.8.5",
     "express": "^4.17.1",
+    "express-router": "0.0.1",
     "knex": "^0.20.11",
+    "moments": "0.0.2",
     "sqlite3": "^4.1.1"
   },
   "devDependencies": {
-    "knex-cleaner": "^1.3.0",
     "nodemon": "^2.0.2"
   }
 }
