@@ -1,18 +1,8 @@
-const express = require('express');
-require('dotenv').config();
-const cors = require('cors'); //CORS
+// code away!
+const server = require('./server.js');
 
 const port = process.env.PORT;
 
-const apiRoutes = require('./api-routes.js');
-
-const server = express();
-
-server.use(express.json());
-server.use(cors());
-
-server.use('/api', apiRoutes);
-
-server.listen(port, () =>
-  console.log(`Server listening on port${port} `)
-);
+server.listen(port, () => {
+  console.log(`\n* Server Running on http://localhost:${port} *\n`);
+});
