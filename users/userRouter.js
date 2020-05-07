@@ -103,7 +103,15 @@ function validateUserId(req, res, next) {
 
 function validateUser(req, res, next) {
   if(req.body.name != ''){
-    next()
+    db.get()
+    .then(users=> {
+      if(users.find(user => user.name === req.body.name)){
+        res.status(400).json({error: "A user with that name already exists, please enter a unique name"})
+      }
+      else{
+        next()
+      }
+    })
   }
   else{
     res.status(400).json({ message: "missing required name field" })
