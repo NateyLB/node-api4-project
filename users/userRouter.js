@@ -102,7 +102,7 @@ function validateUserId(req, res, next) {
 }
 
 function validateUser(req, res, next) {
-  if(req.body.name != ''){
+  if(req.body.name != '' && req.body.name){
     db.get()
     .then(users=> {
       if(users.find(user => user.name === req.body.name)){
@@ -119,7 +119,7 @@ function validateUser(req, res, next) {
 }
 
 function validatePost(req,res,next){
-  if(req.body.text != ''){
+  if(req.body.text != '' && req.body.text){
     next()
   }
   else{

@@ -63,7 +63,7 @@ function validatePostId(req, res, next) {
 }
 
 function validatePost(req,res,next){
-  if(req.body.text != ''){
+  if(req.body.text != '' && req.body.text){
     next()
   }
   else{
